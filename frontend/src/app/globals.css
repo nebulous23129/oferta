@@ -1,0 +1,110 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+  }
+
+  html {
+    @apply antialiased;
+  }
+
+  body {
+    @apply bg-gray-50 text-gray-900 font-sans;
+  }
+}
+
+@layer components {
+  .checkout-step {
+    @apply relative flex items-center justify-center w-6 h-6 rounded-full text-sm font-medium transition-colors duration-200;
+  }
+
+  .checkout-step-active {
+    @apply bg-checkout-step-active-bg text-checkout-step-active-text;
+  }
+
+  .checkout-step-inactive {
+    @apply bg-checkout-step-inactive-bg text-checkout-step-inactive-text;
+  }
+
+  .checkout-step-line {
+    @apply absolute top-1/2 left-0 right-0 h-step-line -translate-y-1/2 transition-all duration-200;
+  }
+
+  .checkout-input {
+    @apply w-full px-3 py-2 text-input bg-checkout-form-input-bg-DEFAULT border border-checkout-form-input-border-DEFAULT rounded-input shadow-input placeholder:text-checkout-form-input-placeholder focus:outline-none focus:border-checkout-form-input-border-focus focus:ring-1 focus:ring-checkout-form-input-border-focus disabled:bg-checkout-form-input-bg-disabled disabled:cursor-not-allowed;
+  }
+
+  .checkout-label {
+    @apply block text-label font-medium text-checkout-form-label-text mb-1;
+  }
+
+  .checkout-card {
+    @apply bg-checkout-card-bg border border-checkout-card-border rounded-card shadow-card overflow-hidden;
+  }
+
+  .checkout-button-primary {
+    @apply w-full py-2 px-4 bg-checkout-button-primary-bg text-checkout-button-primary-text rounded-button font-medium shadow-sm hover:bg-checkout-button-primary-hover transition-colors duration-200 disabled:bg-checkout-button-primary-disabled-bg disabled:text-checkout-button-primary-disabled-text disabled:cursor-not-allowed;
+  }
+
+  .checkout-button-secondary {
+    @apply w-full py-2 px-4 bg-checkout-button-secondary-bg text-checkout-button-secondary-text border border-checkout-button-secondary-border rounded-button font-medium shadow-sm hover:bg-checkout-button-secondary-hover transition-colors duration-200;
+  }
+
+  .checkout-radio-group {
+    @apply space-y-2;
+  }
+
+  .checkout-radio-item {
+    @apply relative flex items-center p-4 border border-checkout-radio-border-DEFAULT rounded-lg cursor-pointer hover:bg-checkout-card-hover transition-colors duration-200;
+  }
+
+  .checkout-radio-dot {
+    @apply w-4 h-4 rounded-full border-2 border-checkout-radio-border-DEFAULT flex items-center justify-center;
+  }
+
+  .checkout-radio-dot-inner {
+    @apply w-2 h-2 rounded-full bg-checkout-radio-dot hidden;
+  }
+
+  .checkout-radio-item[data-state="checked"] {
+    @apply border-checkout-radio-border-checked;
+  }
+
+  .checkout-radio-item[data-state="checked"] .checkout-radio-dot {
+    @apply border-checkout-radio-border-checked;
+  }
+
+  .checkout-radio-item[data-state="checked"] .checkout-radio-dot-inner {
+    @apply block;
+  }
+
+  .checkout-summary {
+    @apply bg-checkout-summary-header-bg border-t border-checkout-summary-header-border;
+  }
+
+  .checkout-summary-row {
+    @apply py-4 border-b border-checkout-summary-row-border last:border-b-0;
+  }
+}
