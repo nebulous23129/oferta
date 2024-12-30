@@ -237,7 +237,7 @@ export default function AdminPage() {
 
               {showForm && (
                 <div className="bg-gray-50 rounded-lg p-6">
-                  <ProductForm onSubmit={() => setShowForm(false)} />
+                  <ProductForm onSuccess={() => setShowForm(false)} />
                 </div>
               )}
 
