@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductForm from './ProductForm';
 import { LinkIcon } from '@heroicons/react/24/outline';
@@ -14,6 +14,7 @@ export default function ProductList() {
   const [loading, setLoading] = useState(true);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const supabase = createClientComponentClient<Database>();
 
   useEffect(() => {
     fetchProducts();
@@ -24,7 +25,7 @@ export default function ProductList() {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false }) as { data: Product[] | null, error: any };
 
       if (error) throw error;
       setProducts(data || []);
