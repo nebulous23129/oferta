@@ -125,7 +125,7 @@ const defaultValues: FormValues = {
   display_name: '',
   description: '',
   price: 0,
-  promotional_price: '',
+  promotional_price: null,
   product_type: 'physical',
   status: 'active',
   page_title: '',
