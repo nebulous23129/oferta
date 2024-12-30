@@ -7,15 +7,18 @@ import ProductForm from './ProductForm';
 import { LinkIcon } from '@heroicons/react/24/outline';
 
 interface Product {
+  id: number;
   product_id: string;
   name: string;
   display_name: string;
+  description?: string;
   price: number;
   promotional_price: number | null;
   status: 'active' | 'inactive' | 'draft';
   page_link: string;
   checkout_id: string;
   created_at: string;
+  image_url?: string;
 }
 
 export default function ProductList() {
