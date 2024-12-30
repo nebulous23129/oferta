@@ -5,21 +5,9 @@ import { supabase } from '@/lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductForm from './ProductForm';
 import { LinkIcon } from '@heroicons/react/24/outline';
+import { Database } from '@/lib/database.types';
 
-interface Product {
-  id: number;
-  product_id: string;
-  name: string;
-  display_name: string;
-  description?: string;
-  price: number;
-  promotional_price: number | null;
-  status: 'active' | 'inactive' | 'draft';
-  page_link: string;
-  checkout_id: string;
-  created_at: string;
-  image_url?: string;
-}
+type Product = Database['public']['Tables']['products']['Row'];
 
 export default function ProductList() {
   const [products, setProducts] = useState<Product[]>([]);
