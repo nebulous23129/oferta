@@ -1,5 +1,8 @@
 import { StaticImageData } from 'next/image';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/lib/database.types';
+
+type Product = Database['public']['Tables']['products']['Row'];
 
 export interface OfferProduct {
   id: string;
@@ -19,27 +22,28 @@ export interface Offer {
 
 export async function getOffers(productId: string): Promise<Offer[]> {
   const offers: Offer[] = [];
+  const supabase = createClientComponentClient<Database>();
 
   // Buscar o produto principal para obter os IDs de orderbump e upsell
-  const { data: mainProduct } = await supabase
+  const { data: mainProduct, error: mainError } = await supabase
     .from('products')
     .select('order_bump_product, order_bump_discount, upsell_product, upsell_discount')
     .eq('product_id', productId)
     .single();
 
-  if (!mainProduct) return [];
+  if (mainError || !mainProduct) return [];
 
   // Buscar produto do OrderBump se existir
   if (mainProduct.order_bump_product) {
-    const { data: orderBumpProduct } = await supabase
+    const { data: orderBumpProduct, error: orderBumpError } = await supabase
       .from('products')
       .select('*')
       .eq('product_id', mainProduct.order_bump_product)
       .eq('status', 'active')
       .single();
 
-    if (orderBumpProduct) {
-      const discountedPrice = orderBumpProduct.price * (1 - mainProduct.order_bump_discount / 100);
+    if (orderBumpProduct && !orderBumpError) {
+      const discountedPrice = orderBumpProduct.price * (1 - (mainProduct.order_bump_discount || 0) / 100);
       offers.push({
         id: orderBumpProduct.product_id,
         type: 'orderbump',
@@ -47,10 +51,10 @@ export async function getOffers(productId: string): Promise<Offer[]> {
         product: {
           id: orderBumpProduct.product_id,
           name: orderBumpProduct.name,
-          description: orderBumpProduct.description,
+          description: orderBumpProduct.description || '',
           originalPrice: orderBumpProduct.price,
-          discountedPrice: Number(discountedPrice.toFixed(2)),
-          imageUrl: orderBumpProduct.image_url || '/images/placeholder.jpg'
+          discountedPrice,
+          imageUrl: orderBumpProduct.image_url || ''
         }
       });
     }
@@ -58,15 +62,15 @@ export async function getOffers(productId: string): Promise<Offer[]> {
 
   // Buscar produto do Upsell se existir
   if (mainProduct.upsell_product) {
-    const { data: upsellProduct } = await supabase
+    const { data: upsellProduct, error: upsellError } = await supabase
       .from('products')
       .select('*')
       .eq('product_id', mainProduct.upsell_product)
       .eq('status', 'active')
       .single();
 
-    if (upsellProduct) {
-      const discountedPrice = upsellProduct.price * (1 - mainProduct.upsell_discount / 100);
+    if (upsellProduct && !upsellError) {
+      const discountedPrice = upsellProduct.price * (1 - (mainProduct.upsell_discount || 0) / 100);
       offers.push({
         id: upsellProduct.product_id,
         type: 'upsell',
@@ -74,10 +78,10 @@ export async function getOffers(productId: string): Promise<Offer[]> {
         product: {
           id: upsellProduct.product_id,
           name: upsellProduct.name,
-          description: upsellProduct.description,
+          description: upsellProduct.description || '',
           originalPrice: upsellProduct.price,
-          discountedPrice: Number(discountedPrice.toFixed(2)),
-          imageUrl: upsellProduct.image_url || '/images/placeholder.jpg'
+          discountedPrice,
+          imageUrl: upsellProduct.image_url || ''
         }
       });
     }
