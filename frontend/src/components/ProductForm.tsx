@@ -1,10 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { Formik, Form, Field } from 'formik';
+import { Formik, Form, Field, FormikErrors, FormikTouched } from 'formik';
 import * as Yup from 'yup';
 import { nanoid } from 'nanoid';
 import { supabase } from '@/lib/supabase';
 import { uploadProductImage } from '@/services/upload';
 import Image from 'next/image';
+
+interface ShippingOption {
+  name: string;
+  price: number;
+  deadline: string;
+}
+
+interface FormValues {
+  name: string;
+  display_name: string;
+  description: string;
+  price: number;
+  promotional_price?: number | null;
+  product_type: 'digital' | 'physical';
+  status: 'active' | 'inactive' | 'draft';
+  page_title?: string;
+  page_link?: string;
+  page_description?: string;
+  page_content?: string;
+  pix_boleto_redirect_url?: string;
+  card_rejected_redirect_url?: string;
+  card_approved_redirect_url?: string;
+  shipping_options?: ShippingOption[];
+  upsell_product?: string;
+  upsell_discount?: number;
+  order_bump_product?: string;
+  order_bump_discount?: number;
+}
+
+interface ProductFormProps {
+  onSuccess: () => void;
+  initialValues?: FormValues;
+}
+
+interface Product {
+  product_id: string;
+  name: string;
+  price: number;
+  image_url?: string;
+}
 
 const validationSchema = Yup.object().shape({
   name: Yup.string()
@@ -80,19 +120,7 @@ const validationSchema = Yup.object().shape({
     }),
 });
 
-interface ProductFormProps {
-  onSuccess: () => void;
-  initialValues?: any;
-}
-
-interface Product {
-  product_id: string;
-  name: string;
-  price: number;
-  image_url?: string;
-}
-
-const defaultValues = {
+const defaultValues: FormValues = {
   name: '',
   display_name: '',
   description: '',
@@ -173,7 +201,7 @@ export default function ProductForm({ onSuccess, initialValues }: ProductFormPro
     upsell_discount: initialValues.upsell_discount || 0,
   } : defaultValues;
 
-  const handleSubmit = async (values: any, { setSubmitting, resetForm }: any) => {
+  const handleSubmit = async (values: FormValues, { setSubmitting, resetForm }: any) => {
     try {
       console.log('Iniciando submissão do formulário...');
       console.log('Valores do formulário:', values);
@@ -276,13 +304,13 @@ export default function ProductForm({ onSuccess, initialValues }: ProductFormPro
   };
 
   return (
-    <Formik
+    <Formik<FormValues>
       initialValues={sanitizedInitialValues}
       validationSchema={validationSchema}
       onSubmit={handleSubmit}
       enableReinitialize={true}
     >
-      {({ errors, touched, isSubmitting, values, setFieldValue }) => (
+      {({ errors, touched, values, setFieldValue }) => (
         <Form className="space-y-6">
           {initialValues?.checkout_id && (
             <div className="bg-gray-50 p-4 rounded-lg">
@@ -832,10 +860,10 @@ export default function ProductForm({ onSuccess, initialValues }: ProductFormPro
           <div className="flex justify-end">
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={Object.keys(errors).length > 0}
               className="inline-flex justify-center rounded-md border border-transparent bg-[#65D19C] py-2 px-4 text-sm font-medium text-white shadow-sm hover:bg-[#58b589] focus:outline-none focus:ring-2 focus:ring-[#65D19C] focus:ring-offset-2 disabled:opacity-50"
             >
-              {isSubmitting ? 'Salvando...' : 'Salvar Produto'}
+              Salvar Produto
             </button>
           </div>
         </Form>
