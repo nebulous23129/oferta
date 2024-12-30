@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Formik, Form, Field, FormikErrors, FormikTouched } from 'formik';
 import * as Yup from 'yup';
 import { nanoid } from 'nanoid';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Database } from '@/lib/database.types';
 import { uploadProductImage } from '@/services/upload';
 import Image from 'next/image';
 
@@ -31,9 +32,12 @@ interface FormValues {
   upsell_product?: string;
   upsell_discount?: number;
   order_bump_product?: string;
-  order_bump_discount?: number;`n  image_url?: string;
+  order_bump_discount?: number;
+  image_url?: string;
+  pix_discount?: number;
+  card_discount?: number;
+  boleto_discount?: number;
 }
-
 interface ProductFormProps {
   onSuccess: () => void;
   initialValues?: FormValues;
@@ -74,8 +78,6 @@ const validationSchema = Yup.object().shape({
   status: Yup.string()
     .required('Status é obrigatório')
     .oneOf(['active', 'inactive', 'draft'], 'Status inválido'),
-  
-  // Novos campos SEO
   page_title: Yup.string()
     .max(70, 'Título da página não pode exceder 70 caracteres'),
   page_link: Yup.string()
@@ -83,43 +85,44 @@ const validationSchema = Yup.object().shape({
   page_description: Yup.string()
     .max(160, 'Descrição da página não pode exceder 160 caracteres'),
   page_content: Yup.string(),
-
-  // URLs de Redirecionamento
   pix_boleto_redirect_url: Yup.string().url('URL de Pix/Boleto inválida'),
   card_rejected_redirect_url: Yup.string().url('URL de Cartão Recusado inválida'),
   card_approved_redirect_url: Yup.string().url('URL de Cartão Aprovado inválida'),
-
-  // Opções de Frete
   shipping_options: Yup.array().of(
     Yup.object().shape({
-      name: Yup.string().required('Nome do frete é obrigatório'),
-      deadline: Yup.string().required('Prazo de entrega é obrigatório'),
-      price: Yup.number()
-        .required('Preço do frete é obrigatório')
-        .min(0, 'Preço do frete não pode ser negativo')
-        .typeError('Preço do frete inválido'),
+      name: Yup.string().required('Nome é obrigatório'),
+      price: Yup.number().required('Preço é obrigatório').min(0, 'Preço deve ser maior ou igual a 0'),
+      deadline: Yup.string().required('Prazo é obrigatório')
     })
   ),
-  order_bump_product: Yup.string(),
-  order_bump_discount: Yup.number()
-    .transform((value) => (isNaN(value) || value === null ? 0 : value))
+  pix_discount: Yup.number()
     .min(0, 'Desconto deve ser maior ou igual a 0')
-    .max(100, 'Desconto não pode ser maior que 100%')
-    .when('order_bump_product', {
-      is: (val: string) => val && val.length > 0,
-      then: (schema) => schema.required('Desconto é obrigatório quando um produto é selecionado')
-    }),
+    .max(100, 'Desconto não pode exceder 100%'),
+  card_discount: Yup.number()
+    .min(0, 'Desconto deve ser maior ou igual a 0')
+    .max(100, 'Desconto não pode exceder 100%'),
+  boleto_discount: Yup.number()
+    .min(0, 'Desconto deve ser maior ou igual a 0')
+    .max(100, 'Desconto não pode exceder 100%'),
   upsell_product: Yup.string(),
   upsell_discount: Yup.number()
     .transform((value) => (isNaN(value) || value === null ? 0 : value))
     .min(0, 'Desconto deve ser maior ou igual a 0')
-    .max(100, 'Desconto não pode ser maior que 100%')
+    .max(100, 'Desconto não pode exceder 100%')
     .when('upsell_product', {
       is: (val: string) => val && val.length > 0,
-      then: (schema) => schema.required('Desconto é obrigatório quando um produto é selecionado')
+      then: (schema) => schema.required('Desconto é obrigatório quando há produto de upsell')
     }),
+  order_bump_product: Yup.string(),
+  order_bump_discount: Yup.number()
+    .transform((value) => (isNaN(value) || value === null ? 0 : value))
+    .min(0, 'Desconto deve ser maior ou igual a 0')
+    .max(100, 'Desconto não pode exceder 100%')
+    .when('order_bump_product', {
+      is: (val: string) => val && val.length > 0,
+      then: (schema) => schema.required('Desconto é obrigatório quando há produto de order bump')
+    })
 });
-
 const defaultValues: FormValues = {
   name: '',
   display_name: '',
@@ -136,11 +139,16 @@ const defaultValues: FormValues = {
   card_rejected_redirect_url: '',
   card_approved_redirect_url: '',
   shipping_options: [],
+  upsell_product: '',
+  upsell_discount: 0,
   order_bump_product: '',
   order_bump_discount: 0,
-  upsell_product: '',
-  upsell_discount: 0,`n  image_url: null,
+  image_url: null,
+  pix_discount: 0,
+  card_discount: 0,
+  boleto_discount: 0
 };
+
 
 export default function ProductForm({ onSuccess, initialValues }: ProductFormProps) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
