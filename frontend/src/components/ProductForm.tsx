@@ -31,7 +31,7 @@ interface FormValues {
   upsell_product?: string;
   upsell_discount?: number;
   order_bump_product?: string;
-  order_bump_discount?: number;
+  order_bump_discount?: number;`n  image_url?: string;
 }
 
 interface ProductFormProps {
@@ -139,7 +139,7 @@ const defaultValues: FormValues = {
   order_bump_product: '',
   order_bump_discount: 0,
   upsell_product: '',
-  upsell_discount: 0,
+  upsell_discount: 0,`n  image_url: null,
 };
 
 export default function ProductForm({ onSuccess, initialValues }: ProductFormProps) {
