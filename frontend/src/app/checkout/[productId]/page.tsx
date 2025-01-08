@@ -37,6 +37,7 @@
   import { UserUpdateManager } from '@/scripts/userUpdate';
   import { formatCurrency } from '@/components/checkout/OrderSummary';
   import { trackInitiateCheckout, trackPurchase } from '@/services/pixel/pixelEvents';
+  import { validateCPF } from '@/utils/validateCPF';
 
   interface FormData {
     email: string
@@ -457,8 +458,7 @@
     };
 
     const isValidCpf = (cpf: string) => {
-      const cpfRegex = /^\d{3}\.\d{3}\.\d{3}-\d{2}$/;
-      return cpfRegex.test(cpf);
+      return validateCPF(cpf);
     };
 
     const isValidPhone = (phone: string) => {
@@ -818,13 +818,28 @@
             name="cpf"
             value={formData.cpf}
             onChange={(e) => handleMaskedInput(e, formatCPF)}
-            className={cn(
-              "w-full border rounded-lg px-3 py-2 h-[38px] bg-white",
-              "border-gray-300 focus:border-[#1DA6E0] focus:ring-[#1DA6E0]"
-            )}
+            onBlur={(e) => {
+              if (!validateCPF(e.target.value)) {
+                setFormErrors(prev => ({
+                  ...prev,
+                  cpf: 'CPF inválido'
+                }));
+              } else {
+                setFormErrors(prev => ({
+                  ...prev,
+                  cpf: ''
+                }));
+              }
+            }}
+            className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+              formErrors.cpf ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#1DA6E0] focus:ring-[#1DA6E0]'
+            }`}
             placeholder="000.000.000-00"
             maxLength={14}
           />
+          {formErrors.cpf && (
+            <p className="mt-2 text-sm text-red-600">{formErrors.cpf}</p>
+          )}
         </div>
 
         <div>
